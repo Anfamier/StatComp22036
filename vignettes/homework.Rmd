@@ -1,0 +1,1313 @@
+---
+title: "homework"
+author: "22036"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{homework}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+# A-22036-2022-09-09
+
+## Question
+Use knitr to produce at least 3 examples (texts, figures, tables).
+
+```{r}
+library(knitr)
+library(ggplot2)
+library(MASS)
+```
+
+## Answer
+A dataset of car information from different brands
+
+```{r}
+summary(Cars93)
+```
+
+```{r}
+xtable::xtable(head(Cars93))
+```
+
+```{r}
+attach(Cars93)
+plot(x=Horsepower, y=MPG.highway, main = "Horsepower-MPG.highway")
+```
+
+```{r}
+hist(Cars93$Weight)
+```
+
+```{r}
+pie(table(Cars93$Type),main = "Car types in Car93")
+```
+
+
+# A-22036-2022-09-16
+
+## 3.3
+### QUESTION
+The Pareto(a, b) distribution has cdf $$F(x) = (\frac{b}{x})^a, x ≥ b > 0,a > 0.$$
+Derive the probability inverse transformation $F^{-1}(U)$ and use the inverse transform method to simulate a random sample from the Pareto(2, 2) distribution. Graph the density histogram of the sample with the Pareto(2, 2) density superimposed for comparison.
+
+### ANSWER
+```{r}
+n <- 1000
+set.seed(0)
+u <- runif(n)
+x <- 2/ sqrt(1-u) # F(x) = 1- (2/x)^2, 2<=x
+hist(x, prob = TRUE, main = expression(f(x)==frac(8,x^3)), breaks = 100, xlim=c(0,50))
+y <- seq(2, 50, .01)
+lines(y, 8/(y^3))
+
+```
+
+# 3.7
+### QUESTION
+Write a function to generate a random sample of size n from the Beta($a$, $b$) distribution by the acceptance-rejection method. Generate a random sample of size 1000 from the Beta(3, 2) distribution. Graph the histogram of the sample with the theoretical Beta(3, 2) density superimposed.
+
+### ANSWER
+
+```{r}
+n <- 1e3;j<-k<-0;y <- numeric(n)
+ar_beta <- function(a,b){
+  while (k < n) {
+    u <- runif(1)
+    j <- j + 1
+    x <- runif(1) #random variate from g().
+    if (x^(a-1) * (1-x)^(b-1) > u) {
+      #we accept x
+      k <- k + 1
+      y[k] <- x
+    }
+  }
+  return (list(j,y))
+}
+```
+
+```{r}
+ans <- ar_beta(3,2)
+ans[[1]]/n# value of c
+
+x <- seq(0,1,0.01)
+
+hist(ans[[2]], prob=T,main = expression(Be(3,2)), xlim=c(0,1), xlab="x")
+
+lines(x, 12*x^2*(1-x))
+```
+
+
+## 3.12
+### QUESTION
+
+Simulate a continuous Exponential-Gamma mixture. Suppose that the rate parameter $\Lambda$ has Gamma($r$, $\beta$) distribution and $Y$ has Exp($\Lambda$) distribution. That is, $(Y|\Lambda = \lambda) \sim f_Y(y|\lambda) = \lambda e^{−\lambda y}$. Generate 1000 random observations from this mixture with $r$ = 4 and $β$ = 2.
+
+### ANSWER
+
+```{r}
+n <- 1000; r <- 4; beta <- 2
+lambda <- rgamma(n, r, beta)
+x <- rexp(n, lambda) # the length of lambda = n
+hist(x, prob = TRUE, breaks = 20, main = "Mixture Distribution", ylim = c(0,2))
+```
+
+
+## 3.13
+### QUESTION
+It can be shown that the mixture in Exercise 3.12 has a Pareto distribution with cdf $$F(y) = 1 − (\frac{\beta}{\beta + y}) ^ r, y ≥ 0.$$
+(This is an alternative parameterization of the Pareto cdf given in Exercise 3.3.) Generate 1000 random observations from the mixture with $r$ = 4 and $\beta$ = 2. Compare the empirical and theoretical (Pareto) distributions by graphing the density histogram of the sample and superimposing the Pareto density curve.
+
+### ANSWER
+```{r}
+hist(x, prob = TRUE, breaks = 20, main = expression(f(x)==frac(64,(2+x)^5)), ylim = c(0,2))
+y <- seq(0, 50, .01)
+lines(y, 64/(2+y)^5 )
+
+```
+
+
+# A-22036-2022-09-23
+## Quicksort
+### Question
+(1) For $n = 10^4, 2 × 10^4, 4 × 10^4, 6 × 10^4, 8 × 10^4$, apply the fast sorting algorithm to randomly permuted, numbers of $1, . . . , n$.
+(2) Calculate computation time averaged over 100 simulations, denoted by $a_n$.
+(3) Regress $a_n$ on $t_n := n log(n)$, and graphically show the results (scatter plot and regression line).
+
+### Answer
+```{r}
+quick_sort <- function(x){
+  num<-length(x)
+  if (num==0||num==1){
+    return(x)
+  }
+  else{
+    a<-x[1]
+    y<-x[-1]
+    lower <- y[y<a]
+    upper <-y [y>=a]
+    return(c(quick_sort(lower),a,quick_sort(upper)))
+  }
+}
+```
+
+```{r}
+e <- c(10^4, 2 * 10^4, 4 * 10^4, 6 * 10^4, 8 * 10^4)
+a <- numeric(5)
+t <- e*log(e)
+for (i in 1:5){
+  sum_t <- 0
+  j <- 1
+  for (j in 1:100){
+    test <- sample(e[i])
+    sum_t <- sum_t + system.time(quick_sort(test))[1]
+    #system.time(quick_sort(test))[1]
+  }
+  a[i] <- sum_t/100
+}
+```
+
+```{r}
+fit <- lm(a~t)
+summary(fit)
+fit$coef
+plot(x=t,y=a,main = "time - nlogn")
+y <- seq(0,10^6,1)
+lines(y,fit$coef[1]+fit$coef[2]*y,col="red")
+```
+
+From the graph there is a linear relationship between time and $nlog(n)$. In fact it can be proved $time = O(nlogn)$.
+
+## 5.6 & 5.7
+### Question
+
+### Answer
+
+```{r}
+MC.Phi <- function(R = 10000, antithetic = FALSE) {
+  u <- runif(R/2)
+  if (antithetic) v <- 1 - u else v <- runif(R/2)
+  u <- c(u, v)
+  g <- exp(u) # x*u ~ N(0,x)
+  cdf <- mean(g)
+  cdf
+}
+```
+
+```{r}
+m <- 1000
+MC1 <- MC2 <- numeric(m)
+x <- 1
+for (i in 1:m) {
+  MC1[i] <- MC.Phi(R = 1000, antithetic = FALSE)
+  MC2[i] <- MC.Phi(R = 1000, antithetic = TRUE)
+}
+c(mean(MC1),mean(MC2))
+#theta估计：MC方法 对偶方法
+c(sd(MC1)^2,sd(MC2)^2,sd(MC2)^2/sd(MC1)^2)
+#MC方法 对偶方法 对偶方法方差/MC方法方差
+```
+
+97% percent reduction in variance of $\hat{\theta}$ that can be achieved using antithetic variate, compared with simple MC.
+
+$Cov(e^{U},e^{1-U})=E(e^{U}e^{1-U})-E(e^{U})E(e^{1-U})=e-(e-1)^2$
+$Var(e^{U}+e^{1-U})=Var(e^{U})+Var(e^{1-U})+2Cov(e^{U},e^{1-U})=2[\frac{e^2-1}{2}-(e-1)^2]+2[e-(e-1)^2]=0.015$
+
+$Var(\hat{\theta_{antithetic}})=\frac{Var(e^{U}+e^{1-U})}{2m}=\frac{0.015}{2000}= 7.5e-06$
+$Var(\hat{\theta_{MC}}) =\frac{Var(e^{U)}}{m}=\frac{0.242}{1000}=2.42e-04$
+$\frac{Var(\hat{\theta_{antithetic}})}{Var(\hat{\theta_{MC}})}=\frac{7.5e-06}{2.42e-04}=0.03099174 $
+Here the mathematical result agrees with experimental comparison.
+
+# A-22036-2022-09-30
+
+## 5.13
+
+### Question1
+
+Find two importance functions $f_1$ and $f_2$ that are supported on $(1, \infty)$ and are 'close' to $$ g(x) = \frac{x^2}{\sqrt{2\pi}} e^{−x^2/2}, x > 1. $$
+
+Which of your two importance functions should produce the smaller variance in estimating $$ \int^{\infty}_1 \frac{x^2}{\sqrt{2\pi}} e^{−x^2/2} dx $$
+
+by importance sampling? Explain.
+
+### Answer1
+
+$g(x)=\frac{x^2}{\sqrt{2\pi}}e^{-\frac{1}{2}x^2}$
+Let $f_1(x)=e^{1-x}, f_2(x)=\frac{1}{x^2}$ 
+
+```{r}
+pi <- 3.1415926
+g <- function(x){
+  return (x^2/sqrt(2*pi)*exp(-0.5*x^2))
+}
+f1 <- function(x){
+  return (exp(1-x))
+}
+f2 <- function(x){
+  return (1/(x^2))
+  #return (1/sqrt(2*pi)*exp(-0.5*x^2))
+}
+m <- 1000
+set.seed(123)
+u <- runif(m)
+x1 <- 1-log(1-u) # Inverse transform algorithm
+x2 <- 1/(1-u) # Inverse transform algorithm
+fg1 <- g(x1) / f1(x1)
+fg2 <- g(x2) / f2(x2)
+theta <- integrate(g,1,Inf)
+theta1_hat <- mean(fg1)
+theta2_hat <- mean(fg2)
+sd1 <- sd(fg1)
+sd2 <- sd(fg2)
+c(theta[[1]], theta1_hat, theta2_hat) #(theta_true, theta_estimate_of_f1, theta_estimate_of_f2)
+c(sd1,sd2) #(stand error with f1, stand error with f2)
+```
+
+Estimate of method with $f_1$ and $f_1$ are both correct.
+Variance of the method with $f_1$ is smaller.
+
+```{r}
+x <- seq(1,5,0.1)
+plot(x,g(x),type="l",ylim=c(0,1),ylab="prob",main="y-x")
+lines(x,f1(x),col="red")
+lines(x,f2(x),col="blue")
+legend("topright",col=c("black","red","blue"),lty=1,legend=c("g","f1","f2"))
+```
+
+From the plot it can be seen in most areas, $f_1(x)$ is closer to have a shape of $cg(x)$ than $f_2(x)$, therefore its variance is smaller.
+
+## 5.15
+
+### Question2
+
+Obtain the stratified importance sampling estimate in Example 5.13 and compare it with the result of Example 5.10. 
+
+There is something wrong with the subintervals in Exercise 5.15 (Example 5.13). You may modify it without losing the original intent.
+
+### Answer2
+
+In stratified importance sampling method, let $f(x)=k(i)f_3(x) $ as modification, here $f_3(x) $is same as in Example 5.10 . In fact, in order to satisfy$\int^{\frac{j+1}{5}}_{\frac{j}{5}} \frac{g(x)}{f(x)}f(x)dx=E[\frac{g(x)}{f(x)}]$, f(x) should be a pdf on interval$[a,b]=[\frac{j}{5},\frac{j+1}{5}]$, thus on each [a,b] stratified, $f(x)=\frac{e^{-x}}{e^{-a}-e^{-b}},x\in [a,b]$.   
+
+```{r}
+m <- 10000
+N <- 50
+k <- numeric(5)
+theta_s <- numeric(5)
+theta <- numeric(N)
+var_s <- numeric(5)
+
+set.seed(123)
+g <- function(x) {
+  exp(-x - log(1+x^2))
+}
+ab <- c(0,1/5,2/5,3/5,4/5,1)
+for (i in 1:5)
+  k[i] <- (1-exp(-1)) / (exp(-ab[i]) - exp(-ab[i+1]))
+
+
+for (j in 1:N){
+  for (i in 1:5){
+    u <- runif(m)
+    x <- -log(exp(-ab[i]) - u * (exp(-ab[i]) - exp(-ab[i+1])))
+    tmpfg <- g(x) / (exp(-x) / (exp(-ab[i]) - exp(-ab[i+1])) )
+    theta_s[i] <- mean(tmpfg)
+    #var_s[i] <- sd(tmpfg)^2
+  }
+  theta[j] <- sum(theta_s) 
+}
+mean(theta)
+var(theta)
+```
+
+```{r}
+c(0.5257801,0.0970314^2) #Estimate and variance from Example 5.13.
+```
+
+It is clear that $Var(\hat\theta^{SI}) < Var(\hat\theta^I)$. 
+
+# A-22036-2022-10-09
+
+## 6.4
+### QUESTION
+Suppose that $X_1,...,X_n$ are a random sample from a from a lognormal distribution with unknown parameters. Construct a 95% confidence interval for the parameter $\mu$. Use a Monte Carlo method to obtain an empirical estimate of the confidence level.
+
+### ANSWER
+#### stats analysis
+X is from a log-normal distribution. Let $Y=Log(X) \sim N(\mu,\sigma^2)$.
+95% CI of Y is $[L,R]=[\hat\beta-\frac{1}{\sqrt{n}}t_{n-1}(0.975)\hat\sigma,\hat\beta+\frac{1}{\sqrt{n}}t_{n-1}(0.975)\hat\sigma]$.Here $\hat\beta=mean(Y),\hat\sigma=sd(Y)$
+So 95% CI of X is $[e^L,e^R]$.
+
+#### data generating
+```{r}
+mcci <- function(m,n,miu, se){
+  lower <- numeric(m)
+  upper <- numeric(m)
+  for (i in 1:m){
+    Lx <- rnorm(n,miu,se)
+    lower[i] <- mean(Lx) - qt(0.975, n-1)*sd(Lx)/sqrt(n)
+    upper[i] <- mean(Lx) + qt(0.975, n-1)*sd(Lx)/sqrt(n)
+  }
+  L <- exp(mean(lower))
+  R <- exp(mean(upper))
+  rm(Lx) #clearing
+  rm(upper)
+  rm(lower)
+  return (c(L, R))
+}
+```
+
+#### result report
+
+Example:
+```{r}
+mcci(1000,20,0,1)
+```
+
+
+
+## 6.8
+### QUESTION
+Refer to Example 6.16. Repeat the simulation, but also compute the F test of equal variance, at significance level $\hat\alpha = 0.055$. Compare the power of the Count Five test and F test for small, medium, and large sample sizes. (Recall that the F test is not applicable for non-normal distributions.)
+
+### ANSWER
+#### data generating
+```{r}
+count5test <- function(x, y) {
+X <- x - mean(x)
+Y <- y - mean(y)
+outx <- sum(X > max(Y)) + sum(X < min(Y))
+outy <- sum(Y > max(X)) + sum(Y < min(X))
+rm(X)
+rm(Y)
+return(as.integer(max(c(outx, outy)) > 5))
+}
+Ftest <- function(x,y){
+  return (as.integer(var.test(x,y,alternative = "two.sided",conf.level = 0.945)[[3]]<0.055))
+}
+```
+
+####  data analysis
+```{r}
+sigma1 <- 1
+sigma2 <- 1.5
+comparision <- function(m,n){
+  num1 = num2 =0
+  for (i in 1:m){
+    x <- rnorm(n, 0, sigma1)
+    y <- rnorm(n, 0, sigma2)
+    num1 = num1 + count5test(x, y)
+  }
+  for (i in 1:m){
+    x <- rnorm(n, 0, sigma1)
+    y <- rnorm(n, 0, sigma2)
+    num2 = num2 + Ftest(x, y)
+  }
+power1 <- num1/m
+power2 <- num2/m
+rm(x) #clear memory
+rm(y) #clear memory
+return (c(power1,power2))
+}
+```
+
+#### result report 
+```{r}
+print("CountFive Test, F Test")
+comparision(1000,20) #small sample size
+comparision(1000,200) #medium sample size
+comparision(1000,2000) #large sample size
+```
+
+When sample size is small, sample is not near normal distribution, so power of test is small. As sample size grows larger, power becomes larger too, approaching 1. Because CountFive test is a simple non-parametric test, its power is apparently lower than power of F test, for we operate test under normal distribution sample.
+
+## Discussion
+### QUESTION1
+If we obtain the powers for two methods under a particular simulation setting with 10,000 experiments: say, 0.651 for one method and 0.676 for another method. Can we say the powers are different at 0.05 level?
+
+### ANSWER1
+
+See the analysis below. It depends on certain hypothesis test.
+
+### QUESTION2
+What is the corresponding hypothesis test problem?
+
+### ANSWER2
+Let $Power_1=$ power of first test, with estimate = 0.651, $Power_2=$ power of first test, with estimate = 0.676,
+$H_0:Power_1=Power_2,H1:Power1\neq Power2$.
+
+### QUESTION3
+Which test can we use? Z-test, two-sample t-test, paired-t test or McNemar test? Why?
+
+### ANSWER3
+McNemar test. McNemar is a non-parametric method for 10000 paired data, which is a 0-1 contingency table corresponding test (its content is a binomial distribution), while other three tests demand normal distribution, which is not suitable here.
+The problem can be written as a contingency table test, according to definition of power:
+```{r}
+t <- matrix(c("n11","n21","n12","n22"),2,2)
+colnames(t) <- c("reject under H1", "accept under H1")
+rownames(t) <- c("reject under H1", "accept under H1")
+t
+```
+Here row means test1 and column means test2.
+
+Therefore:$H_0:n_{11}+n_{12}=n_{21}+n_{22}$.
+The statistic of test is $X = \frac{(n_{12}-n_{21})^2}{n_{12}+n_{21}}$ , and it is a Chi-Squared Distribution with $df=1$ under $H_0$.
+
+### QUESTION4
+Please provide the least necessary information for hypothesis testing.
+
+### ANSWER4
+
+From the problem description, we do not know the exact condition of each pair sample, but only know the total numbers. So we cannot provide the contingency table. Thus we cannot say the powers are different at 0.05 level. (Back to question1)
+
+# A-22036-2022-10-14
+
+```{r}
+library(boot)
+```
+
+## 7.4
+Refer to the air-conditioning data set aircondition provided in the boot package. The 12 observations are the times in hours between failures of air-conditioning equipment [63, Example 1.1]: 3, 5, 7, 18, 43, 85, 91, 98, 100, 130, 230, 487. Assume that the times between failures follow an exponential model $Exp(\lambda)$. Obtain the MLE of the hazard rate $\lambda$ and use bootstrap to estimate the bias and standard error of the estimate.
+
+### ANSWER
+#### stats analysis
+
+Assume $X_1,X_2,...,X_n$ from $Exp(\lambda)$. Its pdf is $f(x,\lambda)=\lambda e^{-\lambda x}$. Likelihood $L(\lambda;x_1,...,x_n)=\lambda ^n e^{-n \overline{x} \lambda}$. $\frac{\partial L}{\partial{\lambda}}=n\lambda^{n-1}e^{-n \overline{x} \lambda}-n \overline{x} \lambda^{n-1}e^{-n \overline{x}}$. Let it = 0, here we can get MLE of $\lambda$ that $\hat\lambda = \frac{1}{\overline{X}}$.
+
+
+#### data generating
+```{r}
+x <- c(3, 5, 7, 18, 43, 85, 91, 98, 100, 130, 230, 487)
+B <- 1e4
+set.seed(1)
+thetastar <- numeric(B)
+theta <- mean(x)
+for(b in 1:B){
+  xstar <- sample(x,replace=TRUE)
+  thetastar[b] <- mean(xstar)
+}
+
+```
+
+#### result report
+```{r}
+c(thetahat= mean(thetastar), theta= theta)
+c(bias=mean(thetastar)-theta, se.boot=sd(thetastar), se.samp=sd(x)/sqrt(length(x)))
+rm(thetastar)
+```
+
+## 7.5
+### QUESTION
+Refer to Exercise 7.4. Compute 95% bootstrap confidence intervals for the mean time between failures $\frac{1}{\lambda}$ by the standard normal, basic, percentile, and BCa methods. Compare the intervals and explain why they may differ.
+
+### ANSWER
+#### stats analysis
+$\hat {\frac{1}{\lambda}}= \overline X$.
+
+#### data generating
+```{r}
+mu <- 1
+b <- 1
+n <- 1e1
+m <- 1e3
+
+set.seed(12345)
+
+boot.median <- function(t,i){
+  return (median(t[i]))
+}
+boot.mean <- function(t,i){
+  return (mean(t[i]))
+}
+
+ci.norm <- ci.basic <- ci.perc <- ci.bca <- matrix(NA,m,2)
+de <- boot(data=x,statistic=boot.median, R = 999)
+ci <- boot.ci(de,type=c("norm","basic","perc","bca"), conf=0.95)
+print(ci)
+```
+
+#### result report & analysis
+
+In fact $\overline X$ is with a distribution of $Gamma(n,n \lambda)$. A rough representation of distribution of $\overline X$ is here:
+```{r}
+tmp <- rgamma(1000,shape = 12, scale = 1/12*108)
+hist(tmp)
+rm(tmp)
+```
+
+Here we can see there is a difference between it and normal distribution. So bootstrap-normal is not so effective in this sample, and its confidence interval is not accurate. Bootstrap-basic assumes symmetry on left and right, but $Gamma$ distribution is not symmetric. In fact, $Gamma$ concentrates on the left (near zero), which is the reason that both CI of  bootstrap-normal and  bootstrap-basic are  much bigger than others. Bootstrap-percentile and bootstrap-bca is close to the empirical distribution of $\overline X$, and their confidence interval are closer than others.
+
+
+## Project A
+### QUESTION
+Conduct a Monte Carlo study to estimate the coverage probabilities of the standard normal bootstrap confidence interval, the basic bootstrap confidence interval, and the percentile confidence interval. Sample from a normal population and check the empirical coverage rates for the sample mean. Find the proportion of times that the confidence intervals miss on the left, and the proportion of times that the confidence intervals miss on the right.
+
+```{r}
+bootci_mc <- function(mu, sigma, n = 10, m = 10000){
+  ci.norm <- ci.basic <- ci.perc <- matrix(NA, m, 2)
+  prob.c <- prob.l <- prob.r <- c(0, 0, 0)
+  for(i in 1:m){
+    s <- rnorm(n, mu, sigma)
+    de <- boot(data = s, statistic = boot.median, R = 999)
+    ci <- boot.ci(boot.out = de, type = c("norm", "basic", "perc"))
+    ci.norm[i, ] <- ci$norm[2:3];ci.basic[i, ] <- ci$basic[4:5];ci.perc[i, ] <- ci$percent[4:5]
+    
+    #ms <- mean(s)
+    #print(ms)
+    #if (ci.norm[, 1] <= ms & ci.norm[, 2] >= ms) prob.c[1] <- prob.c[1] +1
+    #if (ci.basic[, 1] <= ms & ci.basic[, 2] >= ms) prob.c[2] <- prob.c[2] +1
+    #if (ci.perc[, 1] <= ms & ci.perc[, 2] >= ms) prob.c[3] <- prob.c[3] +1
+    
+    #if (ci.norm[, 2] <= ms) prob.l[1] <- prob.l[1] +1
+    #if (ci.basic[, 2] <= ms) prob.l[2] <- prob.l[2] +1
+    #if (ci.perc[, 2] <= ms) prob.l[3] <- prob.l[3] +1
+    
+    #if (ci.norm[, 1] >= ms) prob.r[1] <- prob.r[1] +1
+    #if (ci.basic[, 1] >= ms) prob.r[2] <- prob.r[2] +1
+    #if (ci.perc[, 1] >= ms) prob.r[3] <- prob.r[3] +1
+  }
+  rm(s)
+  rm(de)
+  return(rbind(c(mean(ci.norm[, 1] <= mu & ci.norm[, 2] >= mu), mean(ci.norm[, 2] <= mu), mean(ci.norm[, 1] >= mu)), 
+               c(mean(ci.basic[, 1] <= mu & ci.basic[, 2] >= mu), mean(ci.basic[, 2] <= mu), mean(ci.basic[, 1] >= mu)),
+               c(mean(ci.perc[, 1] <= mu & ci.perc[, 2] >= mu), mean(ci.perc[, 2] <= mu), mean(ci.perc[, 1] >= mu))))
+  #return (c(prob.c, prob.l, prob.r))
+}
+```
+
+#### result report
+```{r}
+ci <- bootci_mc(mu = 0, sigma = 1, n = 50, m = 1000)
+rownames(ci) <- c("normal", "basic", "perc")
+colnames(ci) <- c("coverage.prob", "missed.left", "missed.right")
+```
+
+The table below shows the empirical coverage rates for the sample mean, and the proportion of times that the confidence intervals miss on the left/right.
+```{r}
+ci
+```
+
+Compared with mean, (not sample mean, because there will be full coverage than), bootstrap-percentile covers best.
+
+
+# A-22036-2022-10-21
+
+## 7.8
+
+### QUESTION
+Refer to Exercise 7.7. Obtain the jackknife estimates of bias and standard error of $\hat\theta$
+
+### ANSWER
+
+#### data generating
+
+```{r}
+library(bootstrap)
+data <- bootstrap::scor
+```
+
+```{r}
+sigma_hat <- cov(data)
+theta_hat <- eigen(sigma_hat)$values[1] / sum(eigen(sigma_hat)$values)
+```
+
+```{r}
+n <- nrow(data)
+theta_jack <- numeric(n)
+for (i in 1:n){
+  tmp_scor <- cov(data[-i,])
+  e <- eigen(tmp_scor)
+  theta_jack[i] <- e$values[1] / sum(e$values)
+}
+```
+
+```{r}
+rm(data)
+rm(tmp_scor)
+```
+
+#### result report
+```{r}
+sigma_hat
+theta_hat
+
+bias <- (n-1) * (mean(theta_jack) - theta_hat)
+se_theta <- sqrt((n-1) * mean((theta_jack - mean(theta_jack))^2))
+c(bias,se_theta)
+```
+
+
+## 7.11
+### QUESTION
+In Example 7.18, leave-one-out (n-fold) cross validation was used to select the best fitting model. Use leave-two-out cross validation to compare the models.
+
+### ANSWER
+#### data generating
+```{r}
+library(DAAG)
+attach(ironslag)
+```
+
+```{r}
+n <- length(magnetic) #in DAAG ironslag
+e1 <- e2 <- e3 <- e4 <- numeric(n*(n-1)/2)
+
+i <- 0
+for (k in 1:(n-1)) {
+  for (j in (k+1):n){
+    #if (k==j) break
+    y <- magnetic[-c(k,j)]
+    x <- chemical[-c(k,j)]
+    
+    J1 <- lm(y ~ x)
+    yhat1k <- J1$coef[1] + J1$coef[2] * chemical[k]
+    yhat1j <- J1$coef[1] + J1$coef[2] * chemical[j]
+    e1[i] <- ((magnetic[k] - yhat1k)^2 + (magnetic[j] - yhat1j)^2)/2
+    
+    J2 <- lm(y ~ x+ I(x^2))
+    yhat2k <- J2$coef[1] + J2$coef[2] * chemical[k] + J2$coef[3] * chemical[k]^2
+    yhat2j <- J2$coef[1] + J2$coef[2] * chemical[j] + J2$coef[3] * chemical[j]^2
+    e2[i] <- ((magnetic[k] - yhat2k)^2 + (magnetic[j] - yhat2j)^2)/2
+    
+    J3 <- lm(log(y) ~ x)
+    yhat3k <- exp(J3$coef[1] + J3$coef[2] * chemical[k])
+    yhat3j <- exp(J3$coef[1] + J3$coef[2] * chemical[j])
+    e3[i] <- ((magnetic[k] - yhat3k)^2 + (magnetic[j] - yhat3j)^2)/2
+
+    J4 <- lm(log(y) ~ log(x))
+    yhat4k <- exp(J4$coef[1] + J4$coef[2] * log(chemical[k]))
+    yhat4j <- exp(J4$coef[1] + J4$coef[2] * log(chemical[j]))
+    e4[i] <- ((magnetic[k] - yhat4k)^2 + (magnetic[j] - yhat4j)^2)/2
+        
+    i <- i+1
+  }
+}
+```
+
+
+#### result report 
+```{r}
+c(mean(e1), mean(e2), mean(e3), mean(e4))
+```
+```{r}
+rm(e1,e2,e3,e4,yhat1j,yhat1k,yhat2k,yhat2j,yhat3k,yhat3j,yhat4k,yhat4j)
+```
+
+Here model 2 is the best, with the least prediction error.
+
+## 8.2
+### QUESTION
+Implement the bivariate Spearman rank correlation test for independence as a permutation test. The Spearman rank correlation test statistic can be obtained from function cor with method = "spearman". Compare the achieved significance level of the permutation test with the p-value reported by cor.test on the same samples.
+
+### ANSWER
+#### data generating
+Generate two groups of data : x,y .
+```{r}
+set.seed(123456)
+x <- 1:10
+y <- c(sort(rnorm(5)),sort(rnorm(5)))
+cor_hat <- cor(x,y,method = "spearman")
+p_cor.test <- cor.test(x,y, method = "spearman")[[3]]
+```
+
+#### data analysis
+Compute p-value through permutation test.
+```{r}
+m <- 2000
+cor_t <- numeric(m)
+for (i in 1:m){
+  z <- sample(c(x,y))
+  cor_t[i] <- cor(z[1:10],z[11:20],method = "spearman")
+}
+p_permutation <- mean(abs(cor_t)>=abs(cor_hat))
+c(p_permutation, p_cor.test)
+rm(x,y,cor_t)
+```
+
+P-value from permutation method is close to p-value from cor.test function.
+
+# A-22036-2022-10-28
+
+## 9.4
+
+### QUESTION
+Implement a random walk Metropolis sampler for generating the standard Laplace distribution (see Exercise 3.2). For the increment, simulate from a normal distribution. Compare the chains generated when different variances are used for the proposal distribution. Also, compute the acceptance rates of each chain.
+
+### ANSWER
+
+#### MCMC gennerating using random walk metropolis
+
+$\alpha(x_t, y)=min(1,\frac{f(y)}{f(x_t)})=min(1,e^{-\lvert{y}\rvert+ \lvert{x}\rvert})$
+```{r}
+rw.Metropolis <- function(sigma, x0, N){
+  x <- numeric(N)
+  x[1] <- x0
+  u <- runif(N)
+  k <- 0
+  for (i in 2:N){
+    y <- rnorm(1,x[i-1],sigma)
+    if (u[i] <= exp(-abs(y)+abs(x[i-1])))
+      x[i] <- y
+    else{x[i] <- x[i-1]; k <- k+1}
+  }
+  return (list(x=x,k=k))
+}
+
+Gelman.Rubin <- function(psi){
+  psi <- as.matrix(psi)
+  n <- ncol(psi)
+  k <- nrow(psi)
+  psi.means <- rowMeans(psi)
+  B <- n * var(psi.means)
+  psi.w <- apply(psi,1,"var")
+  W <- mean(psi.w)*(n-1)/n
+  v.hat <- W * (n-1)/n + (B/(n))
+  r.hat <- v.hat / W
+  return (r.hat)
+}
+```
+
+
+#### result report 
+```{r}
+N <- 2000
+sigma <- c(0.05, 0.5, 1, 5)
+x0 <- 5
+rw1 <- rw.Metropolis(sigma[1], x0, N)
+rw2 <- rw.Metropolis(sigma[2], x0, N)
+rw3 <- rw.Metropolis(sigma[3], x0, N)
+rw4 <- rw.Metropolis(sigma[4], x0, N)
+reject_rate <- c(rw1$k, rw2$k ,rw3$k, rw4$k)/N
+reject_rate
+```
+
+```{r,eval=FALSE}
+#par(mfrow=c(2,2))
+plot(rw1$x,type="l",xlab="sigma=0.05",ylab="X",ylim=range(rw1$x))
+plot(rw2$x,type="l",xlab="sigma=0.5",ylab="X",ylim=range(rw2$x))
+plot(rw3$x,type="l",xlab="sigma=1",ylab="X",ylim=range(rw3$x))
+plot(rw4$x,type="l",xlab="sigma=5",ylab="X",ylim=range(rw4$x))
+```
+
+When sigma is too small, mc list cannot converge in first 2000 turns. As variance increases, reject rate increases as well, that is, speed of convergence grows. However, when sigma is too big, the list may not be more effective.
+
+```{r}
+GR.converge <- function(sigma, k = 10, m = 5000){
+  n.converge <- numeric(4)
+    x0 <- rnorm(k, 0, 5)
+    psi <- data.frame()
+    for(j in 1:k)
+      psi <- rbind(psi, rw.Metropolis(sigma, x0[j],  m)$x)
+  
+    for(n in 2:m){
+      GR <- Gelman.Rubin(as.matrix(psi)[, 1:n])
+      if(GR < 1.2)
+        break
+    }
+  return (n)
+}
+```
+
+#### use Gelman Rubin to compute iteration until convergence.  
+```{r}
+set.seed(1)
+cat("sigma=0.5:",GR.converge(sigma[2]),"\n")
+cat("sigma=1:",GR.converge(sigma[3]),"\n")
+cat("sigma=5:",GR.converge(sigma[4]),"\n")
+```
+
+
+
+
+```{r}
+rm(rw1,rw2,rw3,rw4)
+```
+
+## 9.7
+
+### QUESTION
+Implement a Gibbs sampler to generate a bivariate normal chain $(X_t, Y_t)$ with zero means, unit standard deviations, and correlation 0.9. Plot the generated sample after discarding a suitable burn-in sample. Fit a simple linear regression model $Y = β_0 + β_1X$ to the sample and check the residuals of the model for normality and constant variance.
+
+### ANSWER
+#### mcmc generating
+```{r}
+gibbs <- function(x01, x02, N = 5000){
+
+burn <- 1000 # burn-in length
+X <- matrix(0, N, 2) # the chain, a bivariate sample
+
+rho <- 0.9 
+mu1 <- 0
+mu2 <- 0
+sigma1 <- 1
+sigma2 <- 1
+s1 <- sqrt(1-rho^2)*sigma1
+s2 <- sqrt(1-rho^2)*sigma2
+
+X[1, ] <- c(x01, x02) 
+for (i in 2:N) {
+  x2 <- X[i-1, 2]
+  m1 <- mu1 + rho * (x2 - mu2) * sigma1/sigma2
+  X[i, 1] <- rnorm(1, m1, s1)
+  x1 <- X[i, 1]
+  m2 <- mu2 + rho * (x1 - mu1) * sigma2/sigma1
+  X[i, 2] <- rnorm(1, m2, s2)
+}
+
+b <- burn + 1
+x <- X[b:N, ]
+return (X)
+}
+```
+
+
+#### result report
+```{r}
+burn <- 1000
+x <- gibbs(0,0)[(burn+1):N,]
+plot(x[,1],type="l",xlab="x[1]",ylab="X",ylim=range(x[,1]))
+plot(x[,2],type="l",xlab="x[2]",ylab="X",ylim=range(x[,2]))
+```
+
+
+```{r}
+colMeans(x)
+cov(x)
+cor(x)
+plot(x, main="", cex=.5, xlab = bquote(X[1]), ylab = bquote(X[1]), ylim=range(x[,2]))
+```
+
+#### lm test
+```{r}
+fit <- lm(x[,2]~x[,1])
+summary(fit)
+```
+
+Using F.test to check residuals, from the p-value < 2.2e-16 result above, residuals agree with normal model, that is, lm model is correct.
+
+#### Gelman Rubin monotoring
+```{r}
+GR.biconverge <- function(m = 5000){
+  k = 20
+  x0 <- rnorm(k, 5, 5)
+  psi1 <- psi2 <- data.frame()
+  for(j in 1:k/2){
+    xk <- gibbs(x0[j], x0[j+10],  m)
+    psi1 <- rbind(psi1, xk[,1])
+    psi2 <- rbind(psi2, xk[,2])
+  }
+  for(n in 10:m){
+    GR1 <- Gelman.Rubin(as.matrix(psi1)[, 1:n])
+    GR2 <- Gelman.Rubin(as.matrix(psi2)[, 1:n])
+    #print(c(GR1,GR2))
+    if(GR1 < 1.2 & GR2< 1.2)
+      break
+  }
+  return (n)
+}
+```
+
+When the mc chain converges through gr monitoring:
+```{r}
+GR.biconverge()
+```
+
+```{r}
+rm(x)
+```
+
+# A-22036-2022-11-04
+## QUESTION
+
+## ANSWER1
+### data generating
+Key: Permutate X in first hypothesis,  permutate Y in second hypothesis, permutate M in third hypothesis.
+
+```{r}
+generating <- function(alpha, beta, gamma, N){
+  x <- rnorm(N)
+  eM <- rnorm(N)
+  eY <- rnorm(N)
+  m <- alpha*x + eM
+  y <- beta*m + gamma*x + eY
+  return(data.frame(x, m, y))
+}
+```
+
+```{r}
+t_comp <- function(x, m, y){
+  data <- data.frame(x, m, y)
+  Model_M <- lm(m~x, data)
+  Model_Y <- lm(y~m+x, data)
+  t_stat <- Model_M$coef[2]*Model_Y$coef[2]/sqrt(Model_M$coef[2]^2*(summary(Model_M)$coefficients[2,2])^2+Model_Y$coef[2]^2*(summary(Model_Y)$coefficients[2,2])^2)
+  return(as.numeric(t_stat))
+}
+
+permutation_1 <- function(data, N = 20, B = 99){
+  reps <- numeric(B)
+  for (i in 1:B) {
+    k <- sample(1:N, size = N, replace = FALSE)
+    x <- data[k, 1] 
+    reps[i] <- t_comp(x, data$m, data$y)
+  }
+  p <- (sum(abs(reps) > abs(t_comp(data$x, data$m, data$y)))+1)/(1+B)
+  return (p)
+}
+
+permutation_2 <- function(data, N = 20, B = 99){
+  reps <- numeric(B)
+  for (i in 1:B) {
+    k <- sample(1:N, size = N, replace = FALSE)
+    y <- data[k, 3]
+    reps[i] <- t_comp(data$x, data$m, y)
+  }
+  p <- (sum(abs(reps) > abs(t_comp(data$x, data$m, data$y)))+1)/(1+B)
+  return (p)
+}
+
+permutation_3 <- function(data, N = 20, B = 99){
+  reps <- numeric(B)
+  for (i in 1:B) {
+    k <- sample(1:N, size = N, replace = FALSE)
+    m <- data[k, 2]
+    reps[i] <- t_comp(data$x, m, data$y)
+  }
+  p <- (sum(abs(reps)>abs(t_comp(data$x, data$m, data$y)))+1)/(1+B)
+  return (p)
+}
+```
+
+### report
+```{r}
+func <- function(alpha, beta, gamma=1, N=20){
+  K <- 100
+  p <- matrix(0, nrow = 3, ncol = K)
+  for (i in 1:K) {
+    data <- generating(alpha, beta, gamma, N)
+    p[1,i] <- permutation_1(data)
+    p[2,i] <- permutation_2(data)
+    p[3,i] <- permutation_3(data)
+  }
+  return(c(mean(p[1,]<=0.05),mean(p[2,]<=0.05),mean(p[3,]<=0.05)))
+}
+```
+
+```{r}
+set.seed(1)
+simulation1 <- func(alpha=0, beta=0)
+simulation2 <- func(alpha=0, beta=1)
+simulation3 <- func(alpha=1, beta=0)
+```
+
+```{r}
+Permutation_Test <- data.frame(Model1=simulation1, Model2=simulation2, Model3=simulation3)
+row.names(Permutation_Test) <- c("Permutation_Test_1", "Permutation_Test_2", "Permutation_Test_3")
+Permutation_Test
+#Type 1 error table
+```
+
+```{r}
+rm(Permutation_Test)
+```
+
+## ANSWER2
+### data generating
+```{r}
+set.seed(12345)
+
+#N <- 1e6; b1 <- 1; b2 <- 0.5; f0 <- 0.01
+work <- function(N=1e6, b1=1, b2=0.5, b3=1, f0=0.01){
+x1 <- rpois(N,1); x2 <- rexp(N,1); x3 <- sample(0:1,N,replace=TRUE)
+g <- function(alpha){
+tmp <- exp(-alpha-b1*x1-b2*x2-b3*x3)
+p <- 1/(1+tmp)
+mean(p) - f0
+}
+solution <- uniroot(g,c(-20,0))
+return (round(unlist(solution),5)[1:3])
+}
+```
+
+### report
+```{r}
+work(1e6,0,1,-1,0.1)
+work(1e6,0,1,-1,0.01)
+work(1e6,0,1,-1,0.001)
+work(1e6,0,1,-1,0.0001)
+```
+
+```{r}
+f00 <- c(0.1,0.01,0.001,0.0001)
+x <- f00
+for (i in 1:length(f00))
+  x[i] <- work(1e6,0,1,-1,f00[i])
+plot(y=f00,x=x)
+```
+
+```{r}
+rm(x,f00)
+```
+
+# A-22036-2022-11-11
+
+### Answer 1
+#### likelihood MLE
+```{r}
+u <- c(11,8,27,13,16,0,23,10,24,2)
+v <- c(12,9,28,14,17,1,24,11,25,3)
+n = length(u)
+```
+
+```{r}
+L1 <- function(lam){
+  
+  t = 1
+  t <- -sum(u) + sum( (v-u) / ( exp(lam*(v-u))-1 ))
+  return (t)
+}
+```
+
+```{r}
+uniroot(L1,c(0,30))[1]
+```
+
+#### EM algorithm
+```{r}
+iter <- 0
+eps <- 1e-5
+lambda_1 <- 1
+lambda <- 2
+while(1){
+  lambda_1 <- lambda_1 - L1(lambda)/n 
+  if (abs(1/lambda_1 - lambda) < eps) break
+  iter <- iter+1
+  lambda <- 1/lambda_1
+}
+c(iter = iter, lambda = lambda)
+```
+
+
+From the result we can see both estimates are 0.072, through simple MLE and EM iteration, which shows EM estimate equals to MLE. 
+
+```{r}
+rm(u,v)
+rm(lambda,lambda_1)
+```
+
+
+
+
+
+### 2.1.3
+#### 4.
+##### Question
+Why do you need to use unlist() to convert a list to an atomic vector? Why doesn't as.vector() work?
+
+##### Answer
+Elements in a vector have same type, while lists do not demand this. So "as.vector" will convert a vector with elements of same type, while "unlist" not.
+
+
+
+#### 5.
+##### Question
+Why is 1 == "1" true? Why is -1 < FALSE true? Why is "one" < 2 false?
+##### Answer
+In 1 == "1", a integer vector is coerced to an character, so the result is true.
+In -1 < FALSE , logical atomic vector FALSE is coerced to integer 0, so the result is true.
+In "one" < 2 , the character atomic vector "one" cannot be coerced to integer, so it is false.
+
+### 2.3.1
+
+#### 1.
+##### Question
+What does dim() return when applied to a vector?
+
+##### Answer
+NULL. "dim" is for matrix, array, or data frame.
+```{r}
+dim(c(1,2,3))
+```
+
+
+#### 2.
+##### Question
+If is.matrix(x) is TRUE, what will is.array(x) return?
+##### Answer
+TRUE. A matrix is a special array.
+
+### 2.4.5
+#### 1.
+##### Question
+What attributes does a data frame possess?
+##### Answer
+Names, row names, class and groups(not all the time).
+
+#### 2.
+##### Question
+What does as.matrix() do when applied to a data frame with columns of different types?
+##### Answer
+Its elements will be coerced into a same type, following the rule: logical < integer < double < character .
+```{r}
+t
+```
+
+
+
+#### 3.
+##### Question
+Can you have a data frame with 0 rows? What about 0 columns?
+
+##### Answer
+There exist data frames in R with 0 rows, but no data frames with 0 columns (when it has only one column, it turns back to a vector).
+
+
+# A-22036-2022-11-18
+
+### Question1
+
+The function below scales a vector so it falls in the range [0, 1]. How would you apply it to every column of a data frame? How would you apply it to every numeric column in a data frame?
+
+### Answer1
+```{r}
+scale01 <- function(x) {
+rng <- range(x, na.rm = TRUE)
+(x - rng[1]) / (rng[2] - rng[1])
+}
+```
+
+```{r}
+data1 <- data.frame(x=c(1,2,3),y=c(4,5,6))
+data1
+lapply(data1, scale01)
+```
+
+```{r,warning=FALSE}
+library(tidyverse)
+data2 <- data.frame(x=c(1,2,3),y=c(4,5,6),z=c("a","b","c"))
+lapply(select_if(data2,is.numeric), scale01)
+```
+### Question2
+
+Use vapply() to:
+a) Compute the standard deviation of every column in a numeric data frame.
+b) Compute the standard deviation of every numeric column in a mixed data frame. (Hint: you’ll need to use vapply() twice.)
+
+### Answer2
+
+#### (a)
+
+```{r}
+vapply(data1, sd, FUN.VALUE = numeric(1))
+```
+
+#### (b)
+
+```{r}
+vapply( data2[,which(vapply(
+  data2,is.numeric,FUN.VALUE = logical(1)))]
+  , sd, FUN.VALUE = numeric(1))
+```
+
+```{r}
+rm(data1,data2)
+```
+
+
+### Question3
+
+Implement a Gibbs sampler to generate a bivariate normal chain (Xt, Yt) with zero means, unit standard deviations, and correlation 0.9.
+(a) Write an Rcpp function.
+(b) Compare the corresponding generated random numbers with pure R language using the function “qqplot”.
+(c) Compare the computation time of the two functions with the function “microbenchmark”.
+
+### Answer3
+
+```{r}
+library(Rcpp)
+library(microbenchmark)
+```
+
+#### (a)
+```{r}
+cppFunction('NumericMatrix gibbs(double x01, double x02, int N = 1000){
+
+NumericMatrix x(N+1000, 2);
+
+double rho = 0.9 ;
+double mu1 = 0, mu2 = 0;
+double sigma1 = 1, sigma2 = 1;
+double s1 = sqrt(1-rho*rho)*sigma1 ;
+double s2 = sqrt(1-rho*rho)*sigma2 ;
+
+x(0,0) = x01, x(0,1) = x02;
+
+for (int i=1; i<N+1000; i++) {
+  double x2 = x(i-1,1);
+  double m1 = mu1 + rho * (x2 - mu2) * sigma1/sigma2;
+  x(i,0) = rnorm(1, m1, s1)[0];
+  double x1 = x(i,0);
+  double m2 = mu2 + rho * (x1 - mu1) * sigma2/sigma1;
+  x(i,1) = rnorm(1, m2, s2)[0];
+}
+
+return (x);
+}')
+```
+
+```{r}
+gibbsR <- function(x01, x02, N = 2000){
+
+burn <- 1000 # burn-in length
+X <- matrix(0, N, 2) # the chain, a bivariate sample
+
+rho <- 0.9 
+mu1 <- 0
+mu2 <- 0
+sigma1 <- 1
+sigma2 <- 1
+s1 <- sqrt(1-rho^2)*sigma1
+s2 <- sqrt(1-rho^2)*sigma2
+
+X[1, ] <- c(x01, x02) 
+for (i in 2:N) {
+  x2 <- X[i-1, 2]
+  m1 <- mu1 + rho * (x2 - mu2) * sigma1/sigma2
+  X[i, 1] <- rnorm(1, m1, s1)
+  x1 <- X[i, 1]
+  m2 <- mu2 + rho * (x1 - mu1) * sigma2/sigma1
+  X[i, 2] <- rnorm(1, m2, s2)
+}
+
+b <- burn + 1
+x <- X[b:N, ]
+return (x)
+}
+```
+
+#### (b)
+
+```{r}
+x <- gibbs(100,10)[c(1001:2000),]
+y <- gibbsR(100,10)
+qqplot(x[,1], y[,1],main="qqplot of x1", xlab="from C", ylab="from R")
+qqplot(x[,2], y[,2],main="qqplot of x2", xlab="from C", ylab="from R")
+```
+
+From qqplot both generated random numbers corresponds the same distribution.
+
+#### (c)
+
+```{r}
+ts <- microbenchmark(gibbR=gibbsR(100,10),
+gibbC=gibbs(100,10))
+summary(ts)[,c(1,3,5,6)]
+
+```
+
+Function from C is much quicker than that from R.
+
+```{r}
+rm(x,y)
+```
