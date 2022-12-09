@@ -4,12 +4,12 @@
 \alias{g_data}
 \title{Data generating for illustration of group lasso}
 \description{
-A dataset used to illustrate the performance of \code{g_lasso}
+A dataset used to illustrate the performance of \code{g_lasso}. We generate 15 factors, each with 2 variables, and there are 6 non-zero parameters in generating response variable Y.
 }
 \examples{
 \dontrun{
 
-set.seed(114514)
+set.seed(1)
 matr = matrix(nrow = 15, ncol = 15)
 for(i in 1:15)
   for(j in 1:15)
@@ -63,5 +63,6 @@ for (j in 1:M){
   betaj <- g_lasso(X,Y,lam[j],p,J, index)
   beta_s[,j+1] <- betaj
 }
+
 }
 }

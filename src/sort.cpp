@@ -6,11 +6,11 @@ using namespace Rcpp;
 
 
 
-//' @title Compute how many days in month M, year Y
-//' @description Compute how many days in month M, year Y, as a subfunction for water supply prediction
-//' @param Y year
-//' @param M month
-//' @return Days of Month M in Year Y
+//' @title Compute how many days in month M, year Y.
+//' @description Compute how many days in month M, year Y, as a subfunction for water supply prediction.
+//' @param Y Year
+//' @param M Month
+//' @return Days of Month M in Year Y.
 //' @examples
 //' \dontrun{
 //' dates(2022,12)

@@ -1,10 +1,10 @@
-#' @title Using arima model to predict water supply time series in Shenzhen
+#' @title Using complex arima model to predict water supply time series in Shenzhen.
 #' @name arima
-#' @description Using arima model to predict water supply time series in Shenzhen
+#' @description Using complex arima model to predict water supply time series in Shenzhen.
 
-#' @param i a number between 2 and 21, means the selected column
+#' @param i a number between 2 and 21, means the selected neighborhood to train and predict, which is a column in the dataset.
 #'
-#' @return full dataset : hourly
+#' @return full dataset: hourly, including training data and predicted result,
 #' @import tseries
 #' @import forecast
 #' @examples

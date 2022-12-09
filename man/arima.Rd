@@ -3,18 +3,18 @@
 \name{arima}
 \alias{arima}
 \alias{predict}
-\title{Using arima model to predict water supply time series in Shenzhen}
+\title{Using complex arima model to predict water supply time series in Shenzhen.}
 \usage{
 predict(i)
 }
 \arguments{
-\item{i}{a number between 2 and 21, means the selected column}
+\item{i}{a number between 2 and 21, means the selected neighborhood to train and predict, which is a column in the dataset.}
 }
 \value{
-full dataset : hourly
+full dataset: hourly, including training data and predicted result,
 }
 \description{
-Using arima model to predict water supply time series in Shenzhen
+Using complex arima model to predict water supply time series in Shenzhen.
 }
 \examples{
 \dontrun{

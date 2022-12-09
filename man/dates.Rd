@@ -2,20 +2,20 @@
 % Please edit documentation in R/RcppExports.R
 \name{dates}
 \alias{dates}
-\title{Compute how many days in month M, year Y}
+\title{Compute how many days in month M, year Y.}
 \usage{
 dates(Y, M)
 }
 \arguments{
-\item{Y}{year}
+\item{Y}{Year}
 
-\item{M}{month}
+\item{M}{Month}
 }
 \value{
-Days of Month M in Year Y
+Days of Month M in Year Y.
 }
 \description{
-Compute how many days in month M, year Y, as a subfunction for water supply prediction
+Compute how many days in month M, year Y, as a subfunction for water supply prediction.
 }
 \examples{
 \dontrun{

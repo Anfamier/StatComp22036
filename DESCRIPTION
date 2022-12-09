@@ -5,7 +5,7 @@ Version: 1.0
 Date: 2022-12-08
 Author: 22036
 Maintainer: 22036 <1834326801@qq.com>
-Description: : Three R and Rcpp functions are included in this package, for group lasso variables selection, water supply time series prediction and a simple function for date computation.
+Description: : Three R and Rcpp functions are included in this package, for three different problems. First is for group lasso variables selection, which is a special version of lasso considering factors. Second is for water supply time series prediction. Given water supply data of 20 neighborhoods in Shenzhen, we train and test and predict.The third a simple cpp function for date computation.
 License: GPL (>= 2)
 Imports: Rcpp, knitr, rmarkdown, tseries, forecast, MASS, ggplot2, boot, bootstrap, DAAG
 LinkingTo: Rcpp

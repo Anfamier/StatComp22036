@@ -1,11 +1,11 @@
 #' @title Data generating for illustration of group lasso 
 #' @name g_data
-#' @description A dataset used to illustrate the performance of \code{g_lasso}
+#' @description A dataset used to illustrate the performance of \code{g_lasso}. We generate 15 factors, each with 2 variables, and there are 6 non-zero parameters in generating response variable Y.
 #' @import MASS
 #' @examples
 #' \dontrun{
 #' 
-#' set.seed(114514)
+#' set.seed(1)
 #' matr = matrix(nrow = 15, ncol = 15)
 #' for(i in 1:15)
 #'   for(j in 1:15)
@@ -59,6 +59,7 @@
 #'   betaj <- g_lasso(X,Y,lam[j],p,J, index)
 #'   beta_s[,j+1] <- betaj
 #' }
+#' 
 #' }
 NULL
 
@@ -75,15 +76,15 @@ pos <- function(x){
   return (max(x,0))
 }
 
-#' @title group lasso function for variable selection
-#' @description group lasso function for variable selection
-#' @param X the design matrix with factor form
-#' @param Y the response variable vector
-#' @param lambda tuning parameter for penalty in group lasso
-#' @param p numeric vector for factor sizes
-#' @param J number of factors
-#' @param index index for element position of factors, computed from p
-#' @return estimate of parameter beta in group lasso model
+#' @title Group lasso function for variable selection.
+#' @description The Group lasso function for variable selection considering factors.
+#' @param X the design matrix with factor form.
+#' @param Y the response variable vector.
+#' @param lambda the tuning parameter for penalty in group lasso regression.
+#' @param p the numeric vector for factor size.
+#' @param J the number of factors.
+#' @param index the index for element position of factors, computed from factor size p.
+#' @return the estimate of parameter beta in group lasso model
 #' @export
 g_lasso <- function(X, Y, lambda, p, J, index){
   beta <- rep(0, sum(p))

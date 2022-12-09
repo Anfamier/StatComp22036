@@ -2,26 +2,26 @@
 % Please edit documentation in R/grouplasso.R
 \name{g_lasso}
 \alias{g_lasso}
-\title{group lasso function for variable selection}
+\title{Group lasso function for variable selection.}
 \usage{
 g_lasso(X, Y, lambda, p, J, index)
 }
 \arguments{
-\item{X}{the design matrix with factor form}
+\item{X}{the design matrix with factor form.}
 
-\item{Y}{the response variable vector}
+\item{Y}{the response variable vector.}
 
-\item{lambda}{tuning parameter for penalty in group lasso}
+\item{lambda}{the tuning parameter for penalty in group lasso regression.}
 
-\item{p}{numeric vector for factor sizes}
+\item{p}{the numeric vector for factor size.}
 
-\item{J}{number of factors}
+\item{J}{the number of factors.}
 
-\item{index}{index for element position of factors, computed from p}
+\item{index}{the index for element position of factors, computed from factor size p.}
 }
 \value{
-estimate of parameter beta in group lasso model
+the estimate of parameter beta in group lasso model
 }
 \description{
-group lasso function for variable selection
+The Group lasso function for variable selection considering factors.
 }

@@ -15,12 +15,17 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Overview
 
-__StatComp22036__ is a simple R package developed for project of StatComp. Three functions are considered, namely, g_lasso (group lasso variables selection), _arima_ (water supply time series prediction).
+__StatComp22036__ is a simple R package developed for project of StatComp. Three functions are included in this package, namely, g_lasso (group lasso variables selection, which is a special version of lasso considering factors), _arima_ (water supply time series prediction. Given water supply data of 20 neighborhoods in Shenzhen, we train and test and predict), and _dates_ (a simple cpp function for date computation as a subfunction).
 
 
 ## group lasso
 
+The model is : $Y=\sum_{j=1}^{J} \beta_jX_j+\epsilon$.Here $X_j$ is the design matrix for the $j_{th}$ factor.
+
 ### sample data generating
+
+A dataset used to illustrate the performance of g_lasso. We generate 15 factors, each with 2 variables, and there are 6 non-zero parameters in generating response variable Y.
+
 ```{r}
 #Sample1
 set.seed(114514)
@@ -68,6 +73,9 @@ J = 15
 ```
 
 ### group lasso function
+
+Compute the estimate $\beta_j$ for group lasso with iteration updates.
+
 ```{r}
 norm_1 <- function(x){
   return (sum(abs(x)))
@@ -109,7 +117,9 @@ g_lasso <- function(X, Y, lambda, p, J, index){#index是p的前缀和
 }
 ```
 
-### an example from generated data
+### an example from generated data with tuning paramneters
+
+
 ```{r}
 index <- numeric(length(p))
 for (i in 1:J)
@@ -134,11 +144,19 @@ for (j in 1:M){
 
 ```
 
+```{r}
+beta_s
+```
+
 
 
 ## arima for water supply prediction
 
 ### preparations
+
+Hourly is the dataset including training data anda date data to predict. We first make some preparations for training.
+
+
 ```{r}
 load(file="../data/test_public.rda")
 load(file="../data/hourly.rda")
@@ -147,7 +165,6 @@ load(file="../data/hourly.rda")
 ```{r}
 library(tseries)
 library(forecast)
-table(test.public$hourly.or.test)
 ```
 
 ```{r}
@@ -186,6 +203,8 @@ for (k in 2:21)
 ```
 
 ### train and test
+Train the training set with short-term  arima model, and add the predictions in the next training. The MSE of total test data is much better than machine learning baseline method using LightGBM.
+
 ```{r}
 predict <- function(i){
   if (is.na(train1[1,i])==TRUE){
@@ -274,3 +293,34 @@ predict <- function(i){
 ```{r}
 predict(3)
 ```
+
+## dates
+
+```{Rcpp}
+#include <Rcpp.h>
+#include <iostream>
+#include <cmath>
+#include <stdio.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+int dates(int Y,int M){
+  int a[13]={0,31,28,31,30,31,30,31,31,30,31,30,31};
+  if (Y % 4 == 0){
+    if (Y % 100 == 0)
+    {
+      if (Y % 400 == 0)
+        a[2]++;
+    }
+    else
+      a[2]++;
+  }
+  return a[M];
+}
+
+```
+
+```{r}
+dates(2022,12)
+```
+
